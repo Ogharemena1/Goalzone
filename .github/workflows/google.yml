@@ -7,6 +7,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,14 +21,14 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android
-        uses: android-actions/setup-android@v3
+      - name: Install Android SDK packages
+        run: |
+          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | head -n 1)
+          yes | "$SDKMANAGER" --licenses
+          "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Extract project
         run: unzip GoalZone-Phone-Cloud-Build.zip -d project
-
-      - name: Install SDK
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -39,4 +43,5 @@ jobs:
         with:
           name: GoalZone-debug-apk
           path: project/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
           
